@@ -8,10 +8,12 @@ RKL Library 开源库
 
 
 #### 二、如何使用DEMO
+&emsp;
 #####1.首先克隆库到你的本地：
 ```
 git clone https://github.com/codegame/RKL.git
 ```
+&emsp;
 #####2.完成后大概的结构是：
 ```
 
@@ -32,7 +34,10 @@ RKL
   |----README.md
 
 ```
+&emsp;
 #####3.使用固件下载工具LuatTools把RKLlib目录和Demo\pubip_udpping\main.lua添加到项目管理里烧写。
+ ![Image text](https://raw.githubusercontent.com/codegame/RKL/master/doc/project.png)
+&emsp;
 
 #####4.使用串口工具调试工具commtools.rar设置好串口号和波特率为115200打开后输入ping命令即可观察到网络连接质量。
 Ping开始：
@@ -44,6 +49,16 @@ Ping停止：
 `
  print(RKL_ping.Stop()) 
 `
+&emsp;
+ ![Image text](https://raw.githubusercontent.com/codegame/RKL/master/doc/console.png)
+
+&emsp;
+ ##### 在调试控制台观察ping结果：
+ ![Image text](https://raw.githubusercontent.com/codegame/RKL/master/doc/Ping.png)
+
+&emsp;
+ ##### 在调试控制台观察公网IP结果：
+ ![Image text](https://raw.githubusercontent.com/codegame/RKL/master/doc/pubip.png)
 
 &emsp;&emsp;
 #### 三、如何使用到我的项目
