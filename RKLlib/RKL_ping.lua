@@ -9,13 +9,14 @@
 --               internal network connection quality.
 --    [Function]:RKL_ping.start(host,port,size) size=8~1024; RKL_ping.stop();
 --      [Device]:Air724UG(RDA8910)
---        [Core]:Luat_4G_RDA_8910 V0022
+--        [Core]:Luat_V0022_RDA8910_FLOAT V0022
 --      [Author]:Reverseking  (QQ:441673604) 
 --     [License]:MIT
 --   
 --     [History]:[+]New or Add. [-]Remove. [*]Modify. [#]BUG Fixed.
 --               [+] Created the file at                2021-02-19 17:38:10.  
---     
+--               [+] Add Statistical data               2021-02-19 23:02:00.
+--               
 --***************************************************************************
  
 --***************************UDPPING Linux服务端搭建********************************
@@ -35,7 +36,7 @@
 --*********************************************************************************
 
 require"socket"
-require "rtos"
+require"rtos"
 require"lmath" --外置math库
 
 module(...,package.seeall)
@@ -50,7 +51,11 @@ local PING_Port = 4000 --PING服务端端口,string或者number类型
 local PING_Size = 32 --包大小单位字节number类型
 
 local PingCount = 0
-local Udpsocket =0
+local Udpsocket = 0
+local LossCount = 0
+local MaxTime = 0
+local MinTime = 10000
+local AllTime =0
 
 --随机字符串函数,len为返回字符串长度number类型
 local function Randomstr(len)
@@ -94,12 +99,17 @@ local Statemachine = {
             result, recv  = Udpsocket:recv(3000)
             _Time =  (rtos.tick() - _Time) * 5
             if result and recv==_Data  then
+                if _Time > MaxTime then MaxTime = _Time end
+                if _Time < MinTime then MinTime = _Time end
+                AllTime = AllTime + _Time 
                 log.info("RKL_ping",string.format("Reply from %s seq=%d time=%d ms size=%d Byte",PING_Host,PingCount, _Time,PING_Size)) 
             else
                 log.info("RKL_ping", "Request timed out") 
+                LossCount =LossCount +1
             end 
         else
             log.info("RKL_ping", "Request timed out") 
+            LossCount =LossCount +1
         end       
 
     end,
@@ -118,6 +128,11 @@ local Statemachine = {
 function Start(host,port,size)
     local _status = false
     StatemachineIdx ="Stop"  
+    LossCount = 0
+    PingCount = 0
+    MaxTime = 0
+    MinTime = 10000
+    AllTime = 0
     if host ~=nil and port ~=nil then
        PING_Host = host
        PING_Port = port
@@ -137,7 +152,15 @@ end
 --对外提供PING服务停止函数
 --函数返回永远为true=成功
 function Stop()
-    StatemachineIdx ="Stop" 
+    --log.info("RKL_ping", "Stop.")  
+    if StatemachineIdx ~= "Stop" then
+      log.info("RKL_ping",string.format("From %s UDP Ping Statistics:",PING_Host)) 
+      local _loss = (LossCount / PingCount) * 100
+      log.info("RKL_ping",string.format("%d packets transmitted, %d received, %0.2f%% packet loss.",PingCount, PingCount -LossCount, _loss)) 
+      local _Avg = AllTime / (PingCount -LossCount)
+      log.info("RKL_ping",string.format("Minimum time %d ms, Maximum time %d ms, Average time %0.2f ms.",MinTime,MaxTime,_Avg )) 
+      StatemachineIdx ="Stop" 
+    end
     return true
 end
 
